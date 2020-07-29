@@ -5,11 +5,19 @@ import (
 	"errors"
 	"strings"
 	"encoding/json"
-	"fmt"
 	"log"
+	"fmt"
 	"net/url"
 	"sort"
 )
+
+const (
+	OSMR_ROUTE_PATH string = "http://router.project-osrm.org/route/v1/driving/"
+)
+
+var OSMRRouteDefaultArgs = url.Values{
+	"overview":{"false"},
+}
 
 // Validate request query under OSMR restrictions
 func ValidateQuery (r *http.Request) error {
@@ -18,29 +26,68 @@ func ValidateQuery (r *http.Request) error {
 	if len(src) == 0 || len(dst) == 0 {
 		return  errors.New("Not enough arguments specified")
 	} else if len(src) > 1 {
-		return  errors.New("Only one source is available")
+		return  errors.New("Only one source point can be provided")
 	}
 	return nil
 }
 
-// Make call to OSMR API and return Node struct
-func RequestNode (r *http.Request) *Node {
-        query := r.URL.Query()
-        src := query["src"]
-        dst := query["dst"]
-        u, _ := url.Parse("http://router.project-osrm.org/route/v1/driving/")
-        path := append(src, dst...)
-        s := strings.Join(path, ";")
-        rel, _ := u.Parse(s)
-        log.Println(rel.String())
-	resp, _ := http.PostForm(rel.String(), url.Values{"overview":{"false"}})
-        body, _ := ExtractBody(resp)
-        var osmr OSMRResponse
-        json.Unmarshal(body, &osmr)
-        fmt.Println(osmr)
+// Make call to OSMR API and return Node struct with sorted Edges
+func RequestNode (r *http.Request) (*Node) {
+	osmr, err := RequestOSMRRoute(r)
+	if err != nil { 
+		log.Println(err)
+		return nil 
+	}
+        src, dst := GetSourceAndDestinations(r)
         node := ParseToNode(osmr, src, dst)
 	node.sortEdges()
 	return &node
+}
+
+func GetSourceAndDestinations(r *http.Request) ([]string,[]string){
+        query := r.URL.Query()
+        return query["src"], query["dst"]
+}
+
+func RequestOSMRRoute(r *http.Request) (*OSMRResponse, error) {
+        src, dst := GetSourceAndDestinations(r)
+	rel := FormatOSMRRouteQuery(src, dst)
+        log.Println(rel.String())
+
+	resp, err := http.PostForm(rel.String(), OSMRRouteDefaultArgs)
+	if err != nil { return nil, err	}
+
+        body, err := ExtractBody(resp)
+	if err != nil {	return nil, err	}
+
+        var osmr OSMRResponse
+        json.Unmarshal(body, &osmr)
+	if osmr.Code != "Ok" {
+		return nil, fmt.Errorf("OSMR API returned code: %s", osmr.Code)
+	}
+	return &osmr, nil
+}
+
+func FormatOSMRRouteQuery(src []string, dst []string) *url.URL {
+        u, _ := url.Parse(OSMR_ROUTE_PATH)
+        path := append(src, dst...)
+        s := strings.Join(path, ";")
+        rel, _ := u.Parse(s)
+	return rel
+}
+
+// Create Node from OSMRResponse (OSMR response), source and destination array.
+// For proper work destination array order should correspond to routes order.
+func ParseToNode(osmr *OSMRResponse, src []string, dst []string) (node Node){
+	node = Node{Source: src[0], Edge: make([]Edge, len(osmr.Routes[0].Legs))}
+	for idx, val := range osmr.Routes[0].Legs {
+		node.Edge[idx] = Edge{
+			Destination: dst[idx], 
+			Duration: val.Duration, 
+			Distance: val.Distance,
+		}
+	}
+	return node
 }
 
 // Sort egdes in node from smallest distance to highest
