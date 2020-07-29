@@ -19,6 +19,12 @@ var OSMRRouteDefaultArgs = url.Values{
 	"overview":{"false"},
 }
 
+func ExtractBody(resp *http.Response) ([]byte, error) {
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	return body, err
+}
+
 // Validate request query under OSMR restrictions
 func ValidateQuery (r *http.Request) error {
 	src, dst := GetSourceAndDestinations(r)
