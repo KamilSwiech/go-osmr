@@ -21,8 +21,7 @@ var OSMRRouteDefaultArgs = url.Values{
 
 // Validate request query under OSMR restrictions
 func ValidateQuery (r *http.Request) error {
-	query := r.URL.Query()
-	src, dst := query["src"], query["dst"]
+	src, dst := GetSourceAndDestinations(r)
 	if len(src) == 0 || len(dst) == 0 {
 		return  errors.New("Not enough arguments specified")
 	} else if len(src) > 1 {
