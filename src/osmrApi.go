@@ -46,7 +46,7 @@ func RequestNode (r *http.Request) (*Node) {
 	}
         src, dst := GetSourceAndDestinations(r)
         node := ParseToNode(osmr, src, dst)
-	node.sortEdges()
+	node.SortEdges()
 	return &node
 }
 
@@ -97,7 +97,7 @@ func ParseToNode(osmr *OSMRResponse, src []string, dst []string) (node Node){
 }
 
 // Sort egdes in node from smallest distance to highest
-func (node *Node) sortEdges(){
+func (node *Node) SortEdges(){
 	sort.Sort(ByTimeAndDistance(node.Edge)) 
 }
 
