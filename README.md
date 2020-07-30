@@ -10,6 +10,11 @@ Where `src` is source and `dst` is destination. There can be only one source but
 ## Installation
 > Prerequsite: Installed docker
 
+### From dockerhub
+```
+$ docker run -d -p 8080:8080 swiechkamil/go-osmr
+```
+
 ### From repo
 1. Clone repostitory:
 ```
@@ -24,9 +29,3 @@ $ docker build . -t go-osmr
 ```
 $ docker run -d -p 8080:8080 go-osmr
 ```
-
-### From dockerhub
-```
-$ docker run -d -p 8080:8080 swiechkamil/go-osmr
-```
-
