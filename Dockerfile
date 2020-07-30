@@ -7,5 +7,5 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o go-o
 
 FROM alpine:latest  
 WORKDIR /
-COPY --from=builder /go/src/folder/go-osmr .  
+COPY --from=builder /go/src/go-osmr/go-osmr .  
 CMD ["/go-osmr"]
