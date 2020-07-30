@@ -29,3 +29,14 @@ $ docker build . -t go-osmr
 ```
 $ docker run -d -p 8080:8080 go-osmr
 ```
+## How it works
+Http server handles user request on `/routes` endpoint. Request is transformed
+into valid form for OSMR API. Then parsed request is posted on OSRM web service.
+Response from OSMR web service is unpacked into struct named `OSMRResponse`.
+`OSMRResposne` is then transformed into `Node` which is struct for final response in json.
+`Node` struct contains `Edges` which are destinations with parameters. Before packing struct into
+json edges are sorted. After sorting egdes, `Node` is packed into json and returned to user.
+
+If user provides wrong input - server returns errors in logs.
+Logs are also returned for every correct request.
+If running in docker check logs with `docker logs` command.
