@@ -12,7 +12,7 @@ Where `src` is source and `dst` is destination. There can be only one source but
 
 ### From dockerhub
 ```
-$ docker run -d -p 8080:8080 swiechkamil/go-osmr
+$ docker run -d --name go-osmr -p 8080:8080 swiechkamil/go-osmr:v0.1
 ```
 
 ### From repo
