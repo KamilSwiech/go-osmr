@@ -35,7 +35,7 @@ type Edge struct {
 // Struct used to unmarshal json from OSMR
 type OSMRResponse struct {
 	Routes    []Routes    `json:"routes"`
-	Waypoints []Waypoints `json:"waypoints"`
+	Waypoints map[string]interface{} `json:"waypoints"`
 	Code      string      `json:"code"`
 }
 type Legs struct {
@@ -51,11 +51,6 @@ type Routes struct {
 	Weight     int     `json:"weight"`
 	Duration   float64 `json:"duration"`
 	Distance   float64 `json:"distance"`
-}
-type Waypoints struct {
-	Hint     string    `json:"hint"`
-	Name     string    `json:"name"`
-	Location []float64 `json:"location"`
 }
 
 /* Create Node with sorted Edges from request */
@@ -86,7 +81,7 @@ func ExtractBody(resp *http.Response) ([]byte, error) {
 func ValidateQuery (r *http.Request) error {
 	src, dst := GetSourceAndDestinations(r)
 	if len(src) == 0 || len(dst) == 0 {
-		return  errors.New("Not enough arguments specified")
+		return  errors.New("Source and destination should be specified")
 	} else if len(src) > 1 {
 		return  errors.New("Only one source point can be provided")
 	}
