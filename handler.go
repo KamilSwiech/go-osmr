@@ -14,9 +14,11 @@ func main() {
 			return
 		}
 		node := RequestNode(r)
-		w.WriteHeader(200)
-		b, _ := json.Marshal(node)
-		fmt.Fprintf(w, "%s", b)
+		json, err := json.Marshal(node)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Fprintf(w, "%s", json)
 	})
 
         if err := http.ListenAndServe(":8080",nil); err != nil {
